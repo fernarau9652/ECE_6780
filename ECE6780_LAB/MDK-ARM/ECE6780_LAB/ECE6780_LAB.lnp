@@ -1,0 +1,25 @@
+--cpu Cortex-M0
+"ece6780_lab\startup_stm32f072xb.o"
+"ece6780_lab\main.o"
+"ece6780_lab\stm32f0xx_it.o"
+"ece6780_lab\stm32f0xx_hal_msp.o"
+"ece6780_lab\stm32f0xx_hal_tim.o"
+"ece6780_lab\stm32f0xx_hal_tim_ex.o"
+"ece6780_lab\stm32f0xx_hal_rcc.o"
+"ece6780_lab\stm32f0xx_hal_rcc_ex.o"
+"ece6780_lab\stm32f0xx_hal.o"
+"ece6780_lab\stm32f0xx_hal_i2c.o"
+"ece6780_lab\stm32f0xx_hal_i2c_ex.o"
+"ece6780_lab\stm32f0xx_hal_gpio.o"
+"ece6780_lab\stm32f0xx_hal_dma.o"
+"ece6780_lab\stm32f0xx_hal_cortex.o"
+"ece6780_lab\stm32f0xx_hal_pwr.o"
+"ece6780_lab\stm32f0xx_hal_pwr_ex.o"
+"ece6780_lab\stm32f0xx_hal_flash.o"
+"ece6780_lab\stm32f0xx_hal_flash_ex.o"
+"ece6780_lab\stm32f0xx_hal_exti.o"
+"ece6780_lab\system_stm32f0xx.o"
+--strict --scatter "ECE6780_LAB\ECE6780_LAB.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "ECE6780_LAB.map" -o ECE6780_LAB\ECE6780_LAB.axf
