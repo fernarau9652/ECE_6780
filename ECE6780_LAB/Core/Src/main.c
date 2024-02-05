@@ -64,147 +64,123 @@ int main(void)
 {
   HAL_Init(); // Reset of all peripherals, init the Flash and Systick
 	SystemClock_Config(); //Configure the system clock
-	
-	/* This example uses HAL library calls to control
-	the GPIOC peripheral. You’ll be redoing this code
-	with hardware register access. */
-	
-	//__HAL_RCC_GPIOC_CLK_ENABLE(); // Enable the GPIOC clock in the RCC
-
-	// Set up a configuration struct to pass to the initialization function
-	/*GPIO_InitTypeDef initStr = {
-		GPIO_PIN_8 | GPIO_PIN_9,
-		GPIO_MODE_OUTPUT_PP,
-		GPIO_SPEED_FREQ_LOW,
-		GPIO_NOPULL};*/
-	//HAL_GPIO_Init(GPIOC, &initStr); // Initialize pins PC8 & PC9
-	//HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET); // Start PC8 high
+		
+	/* Lab 1 - Configuring a GPIO Pin to Output and Blink an LED */
+	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;	// Enable the GPIOC Clock in RCC
+	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;	// Enable the USER Button PA0
 	
 	
-	/* Lab 1 - Part 1*/
-	// Enable the GPIOC Clock in RCC
-	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
-	
-	// Enable the GPIOA Clock for USER Button PA0
-	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-	
-	
-	/* ORANGE (PC8) & GREEN (PC9) LEDs */ // /*
+	/* ORANGE (PC8) & GREEN (PC9) LEDs	*/  /*
 	// Clears the 16th (PC8 [MODER8(17,16)]) and 18th (PC9 [MODER9(19,18)]) bits in the GPIOC_MODER register (Reset state: 00)
-	//GPIOC->MODER &= ~((1 << 16) | (1 << 18));
 	GPIOC->MODER &= ~(GPIO_MODER_MODER8_Msk | GPIO_MODER_MODER9_Msk);
 	
 	// Sets the 16th (PC8 [MODER8(17,16)]) and 18th (PC9 [MODER9(19,18)]) bits in the GPIOC_MODER register (General purpose: 01)
-	//GPIOC->MODER |= (1 << 16) | (1 << 18);
 	GPIOC->MODER |= (GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0); 
 	
-	// Configure Push/Pull Output type for PC8 and PC9
-	//GPIOC->OTYPER |= 0x0;
+	// Configure Push/Pull Output type for PC8 and PC9	(00)
 	GPIOC->OTYPER &= ~(GPIO_OTYPER_OT_8 | GPIO_OTYPER_OT_9);
 	
-	// Configure low speed for PC8 and PC9
-	//GPIOC->OSPEEDR |= 0x0;
+	// Configure low speed for PC8 and PC9	(00)
 	GPIOC->OSPEEDR &= ~(GPIO_OSPEEDR_OSPEEDR8_Msk | GPIO_OSPEEDR_OSPEEDR9_Msk);
 	
-	// Configure no pull-up/down resistors for PC8 and PC9
-	//GPIOC->PUPDR |= 0x0;
+	// Configure no pull-up/down resistors for PC8 and PC9	(00)
 	GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR8_Msk | GPIO_PUPDR_PUPDR9_Msk);
 	
 	// Initialize pins to logic high and the other to low.
-	//GPIOC->ODR |= (1 << 8) | (0 << 9);
   GPIOC->BSRR = GPIO_BSRR_BS_8; // PC8 high
   GPIOC->BSRR = GPIO_BSRR_BR_9; // PC9 low
-	// */
+	//	*/
 	
 	
-	
-	/* RED    (PC6) & BLUE  (PC7) LEDs */  /*
-	// Clears the 12th (PC6 [MODER8(13,12)]) and 14th (PC7 [MODER9(15,14)]) bits in the GPIOC_MODER register (Reset state: 00)
-	//GPIOC->MODER &= ~((1 << 12) | (1 << 14));
+	/* RED    (PC6) & BLUE  (PC7) LEDs	*/ // /*
+	// Clears the 12th (PC6 [MODER8(13,12)]) and 14th (PC7 [MODER9(15,14)]) bits in the GPIOC_MODER register	(Reset state: 00)
 	GPIOC->MODER &= ~(GPIO_MODER_MODER6_Msk | GPIO_MODER_MODER7_Msk);
 	
-	// Sets the 12th (PC6 [MODER8(13,12)]) and 14th (PC7 [MODER9(15,14)]) bits in the GPIOC_MODER register (General purpose: 01)
-	//GPIOC->MODER |= (1 << 12) | (1 << 14); 
+	// Sets the 12th (PC6 [MODER8(13,12)]) and 14th (PC7 [MODER9(15,14)]) bits in the GPIOC_MODER register	(General purpose: 01) 
 	GPIOC->MODER |= (GPIO_MODER_MODER6_0 | GPIO_MODER_MODER7_0);
 	
-	// Configure Push/Pull Output type for PC6 and PC7
-	//GPIOC->OTYPER |= 0x0;
+	// Configure Push/Pull Output type for PC6 and PC7	(00)
 	GPIOC->OTYPER &= ~(GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7);
 	
-	// Configure low speed for PC6 and PC7
-	//GPIOC->OSPEEDR |= 0x0;
+	// Configure low speed for PC6 and PC7	(00)
 	GPIOC->OSPEEDR &= ~(GPIO_OSPEEDR_OSPEEDR6_Msk | GPIO_OSPEEDR_OSPEEDR7_Msk);
 	
-	// Configure no pull-up/down resistors for PC6 and PC7
-	//GPIOC->PUPDR |= 0x0;
+	// Configure no pull-up/down resistors for PC6 and PC7	(00)
 	GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR6_Msk | GPIO_PUPDR_PUPDR7_Msk);
 	
 	// Initialize pins to logic high and the other to low.
-	//GPIOC->ODR |= (1 << 6) | (0 << 7);
-  GPIOC->BSRR = GPIO_BSRR_BS_6; // Set PC6 high
+  GPIOC->BSRR = GPIO_BSRR_BS_6;	// Set PC6 high
   GPIOC->BSRR = GPIO_BSRR_BR_7; // Set PC7 low
-	// */
+	//	*/
 
 	
-	
-	/* Lab 1 - Part 2 */
-	// Configure input mode (00) for PA0
-	//GPIOA->MODER |= (0 << 0);
+	/* Lab 1 - Configuring a GPIO Pin to Input and Reading a Button */
+	// Configure input mode for PA0	(00)
 	GPIOA->MODER &= ~(GPIO_MODER_MODER0_Msk);
 	
-	// Configure low speed for PA0
-	//GPIOA->OSPEEDR |= 0x0;
+	// Configure low speed for PA0	(00)
 	GPIOA->OSPEEDR &= ~(GPIO_OSPEEDR_OSPEEDR0_Msk);
 	
-	// Configure Pull-down for PA0
-	//GPIOA->PUPDR |= (1 << 1);
-	GPIOA->PUPDR &= ~GPIO_PUPDR_PUPDR0_Msk; // clear bits
-  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1;		// Set to Pull-down (10)
+	// Configure Pull-down for PA0	(10)
+	GPIOA->PUPDR &= ~GPIO_PUPDR_PUPDR0_Msk; // clear bits first
+  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1;		// Set to Pull-down
 	
+	// Initialize Debouncer variables
+	uint32_t debouncer = 0;	// initial state of debouncer shifting
+	uint32_t state = 0; 		// describes the initial state of the LEDs, then toggles between transitions
 	
-	
-
-	uint32_t debouncer = 0;
 	while (1) {
-		HAL_Delay(200); // Delay 200ms
+		/* Debouncer Code							*/ // /*
+		int input_signal = GPIOA->IDR & 1;	// Set and check for USER button input
+		debouncer = (debouncer << 1); 			// Always shift every loop iteration
 		
-		debouncer = (debouncer << 1); // Always shift every loop iteration
-		if (GPIOA->IDR & 1) { // If input signal is set/high
-			debouncer |= 0x01; // Set lowest bit of bit-vector
+		if (input_signal) {		// If input signal is set/high
+			debouncer |= 0x01;	// Set lowest bit of bit-vector
 		}
 		
-		if (debouncer == 0xFFFFFFFF) {
-		// This code triggers repeatedly when button is steady high!
-			
-		}
-
-		if (debouncer == 0x00000000) {
-		// This code triggers repeatedly when button is steady low!
-			
-		}
-		
-		if (debouncer == 0x7FFFFFFF) {
 		// This code triggers only once when transitioning to steady high!
-			
-			
-		}
-		// When button is bouncing the bit-vector value is random since bits are set when the button is high and not when it bounces low.
-		
-		
-		/* Orange and green
-		GPIOC->ODR |= (1 << 8);
+		if (debouncer == 0x7FFFFFFF) {
+			if (state == 0){	//				*/
+				
+				/* ORANGE and GREEN LEDs	*/  /*
+				GPIOC->BSRR = GPIO_BSRR_BR_8;	// Set PC6 low
+				GPIOC->BSRR = GPIO_BSRR_BS_9;	// Set PC7 high */
+				
+				/* RED and BLUE LEDs 			*/ // /*
+				GPIOC->BSRR = GPIO_BSRR_BR_6; // Set PC6 low
+				GPIOC->BSRR = GPIO_BSRR_BS_7; // Set PC7 high */
+				
+				/* Toggle to state 1			*/ // /*
+				state = 1;
+			}
+			else {	// state == 1				*/ 
+				
+				/* ORANGE and GREEN LEDs	*/  /*
+				GPIOC->BSRR = GPIO_BSRR_BS_8; // Set PC6 high
+				GPIOC->BSRR = GPIO_BSRR_BR_9; // Set PC7 low */
+				
+				/* RED and BLUE LEDs 			*/ // /*
+				GPIOC->BSRR = GPIO_BSRR_BS_6; // Set PC6 high
+				GPIOC->BSRR = GPIO_BSRR_BR_7; // Set PC7 low */
+				
+				/* Toggle to state 0 			*/ // /*
+				state = 0;
+			}
+		} 
+		// When button is bouncing the bit-vector value is random since bits are set when the button is high and not when it bounces low.		
+		HAL_Delay(1); // Delay 1ms */
+
+
+		/* Part 1.5.1 - ORANGE and GREEN LEDs
+		Toggle the output state of PC8 (ORANGE) and PC9 (GREEN) */  /*
 		HAL_Delay(200);
-		GPIOC->ODR |= (1 << 9); //*/
+		GPIOC->ODR ^= (GPIO_ODR_8 | GPIO_ODR_9); // */
 		
-		// Blue and red
-		GPIOC->ODR |= (1 << 6);
+		/*Part 1.5.1 - RED and BLUE LEDs
+		Toggle the output state of PC6 (RED) and PC7 (BLUE) 		*/  /*
 		HAL_Delay(200);
-		GPIOC->ODR |= (1 << 7);
+		GPIOC->ODR ^= (GPIO_ODR_6 | GPIO_ODR_7); // */
 		
-		
-		
-		// Toggle the output state of both PC8 and PC9
-		//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9);
 	}
 }
 
