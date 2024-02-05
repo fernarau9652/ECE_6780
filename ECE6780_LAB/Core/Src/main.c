@@ -87,8 +87,8 @@ int main(void)
 	GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR8_Msk | GPIO_PUPDR_PUPDR9_Msk);
 	
 	// Initialize pins to logic high and the other to low.
-  GPIOC->BSRR = GPIO_BSRR_BS_8; // PC8 high
-  GPIOC->BSRR = GPIO_BSRR_BR_9; // PC9 low
+	GPIOC->BSRR = GPIO_BSRR_BS_8; // PC8 high
+	GPIOC->BSRR = GPIO_BSRR_BR_9; // PC9 low
 	//	*/
 	
 	
@@ -109,8 +109,8 @@ int main(void)
 	GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR6_Msk | GPIO_PUPDR_PUPDR7_Msk);
 	
 	// Initialize pins to logic high and the other to low.
-  GPIOC->BSRR = GPIO_BSRR_BS_6;	// Set PC6 high
-  GPIOC->BSRR = GPIO_BSRR_BR_7; // Set PC7 low
+	GPIOC->BSRR = GPIO_BSRR_BS_6;	// Set PC6 high
+	GPIOC->BSRR = GPIO_BSRR_BR_7; // Set PC7 low
 	//	*/
 
 	
@@ -123,7 +123,7 @@ int main(void)
 	
 	// Configure Pull-down for PA0	(10)
 	GPIOA->PUPDR &= ~GPIO_PUPDR_PUPDR0_Msk; // clear bits first
-  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1;		// Set to Pull-down
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1;		// Set to Pull-down
 	
 	// Initialize Debouncer variables
 	uint32_t debouncer = 0;	// initial state of debouncer shifting
