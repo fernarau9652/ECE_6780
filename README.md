@@ -1,2 +1,4 @@
 # ECE_6780
-ECE 6780 Labs
+Embedded Systems Lab
+Section 004
+Fernando Araujo
