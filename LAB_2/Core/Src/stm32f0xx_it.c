@@ -122,6 +122,7 @@ void PendSV_Handler(void)
 /**
   * @brief This function handles System tick timer.
   */
+// initialize the count
 volatile int count = 0;
 void SysTick_Handler(void)
 {
@@ -129,14 +130,14 @@ void SysTick_Handler(void)
 
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
-	count++;
   /* USER CODE BEGIN SysTick_IRQn 1 */
+	
+	// Toggle BLUE LED (PC7) every 200ms
+	count++;	// increment count after every tick
 	if (count == 200){
-		GPIOC->ODR ^= (GPIO_ODR_7);
-		count= 0;
+		GPIOC->ODR ^= (GPIO_ODR_7);	// Toggle PC7
+		count= 0;		// reset the count
 	}
-	
-	
 	
   /* USER CODE END SysTick_IRQn 1 */
 }

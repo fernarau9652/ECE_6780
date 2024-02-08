@@ -65,10 +65,9 @@ int main(void)
   HAL_Init(); // Reset of all peripherals, init the Flash and Systick
 	SystemClock_Config(); //Configure the system clock
 		
-	/* Lab 1 - Configuring a GPIO Pin to Output and Blink an LED */
+	/* Configuring a GPIO Pin to Output and Blink an LED */
 	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;	// Enable the GPIOC Clock in RCC
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;	// Enable the USER Button PA0
-	
 	
 	/* Initialize all LEDs: RED (PC6), BLUE (PC7), ORANGE (PC8), GREEN (PC9)	*/ // /*
 	// (Reset state: 00)
@@ -77,13 +76,13 @@ int main(void)
 	// (General purpose: 01) 
 	GPIOC->MODER |= (GPIO_MODER_MODER6_0 | GPIO_MODER_MODER7_0 | GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0);
 	
-	// Configure Push/Pull Output type for PC6 and PC7	(00)
+	// Configure Push/Pull Output type for PC6, PC7, PC8, and PC9	(00)
 	GPIOC->OTYPER &= ~(GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7 | GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0);
 	
-	// Configure low speed for PC6 and PC7	(00)
+	// Configure low speed for PC6, PC7, PC8, and PC9	(00)
 	GPIOC->OSPEEDR &= ~(GPIO_OSPEEDR_OSPEEDR6_Msk | GPIO_OSPEEDR_OSPEEDR7_Msk | GPIO_OSPEEDR_OSPEEDR8_Msk | GPIO_OSPEEDR_OSPEEDR9_Msk);
 	
-	// Configure no pull-up/down resistors for PC6 and PC7	(00)
+	// Configure no pull-up/down resistors for PC6, PC7, PC8, and PC9	(00)
 	GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR6_Msk | GPIO_PUPDR_PUPDR7_Msk | GPIO_PUPDR_PUPDR8_Msk | GPIO_PUPDR_PUPDR9_Msk);
 	
 	// Initialize pins to logic high and the other to low.
@@ -92,9 +91,8 @@ int main(void)
 	GPIOC->BSRR = GPIO_BSRR_BR_8;	// Set PC8 low
 	GPIOC->BSRR = GPIO_BSRR_BS_9; // Set PC9 high
 	//	*/
-
 	
-	/* Lab 1 - Configuring a GPIO Pin to Input and Reading a Button */
+	/* Configuring a GPIO Pin to Input and Reading a Button */
 	// Configure input mode for PA0	(00)
 	GPIOA->MODER &= ~(GPIO_MODER_MODER0_Msk);
 	
@@ -105,9 +103,15 @@ int main(void)
 	GPIOA->PUPDR &= ~GPIO_PUPDR_PUPDR0_Msk; // clear bits first
 	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1;		// Set to Pull-down
 	
-	// Initialize Debouncer variables
-	uint32_t debouncer = 0;	// initial state of debouncer shifting
-	uint32_t state = 0; 		// describes the initial state of the LEDs, then toggles between transitions
+	// Unmask interrupt generation on EXTI input line 0 (EXTI0)
+	//EXTI->IMR |= (1<<0);
+	//EXTI->IMR &= ~EXTI_IMR_MR0;
+	
+	// EXTI_RTSR (rising-edge)
+	//EXTI->RTSR |= (1<<0);
+	
+	
+	
 	
 	while (1) {
 		/* Debouncer Code							*/  /*
