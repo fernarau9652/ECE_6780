@@ -103,12 +103,16 @@ int main(void)
 	GPIOA->PUPDR &= ~GPIO_PUPDR_PUPDR0_Msk; // clear bits first
 	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1;		// Set to Pull-down
 	
-	// Unmask interrupt generation on EXTI input line 0 (EXTI0)
+	// Enable/unmask interrupt generation on EXTI input line 0 (EXTI0).
 	//EXTI->IMR |= (1<<0);
-	//EXTI->IMR &= ~EXTI_IMR_MR0;
+	EXTI->IMR |= EXTI_IMR_MR0_Msk;
 	
-	// EXTI_RTSR (rising-edge)
+	// Configure the EXTI input line 0 to have a rising-edge trigger.
 	//EXTI->RTSR |= (1<<0);
+	EXTI->RTSR |= EXTI_RTSR_TR0_Msk;
+	
+	
+	// Use the RCC to enable the peripheral clock to the SYSCFG peripheral.
 	
 	
 	
