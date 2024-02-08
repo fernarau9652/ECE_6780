@@ -1,11 +1,11 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html><head>
-<title>Static Call Graph - [ECE6780_LAB\ECE6780_LAB.axf]</title></head>
+<title>Static Call Graph - [LAB_2\LAB_2.axf]</title></head>
 <body><HR>
-<H1>Static Call Graph for image ECE6780_LAB\ECE6780_LAB.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6210000: Last Updated: Tue Feb  6 09:32:45 2024
+<H1>Static Call Graph for image LAB_2\LAB_2.axf</H1><HR>
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6210000: Last Updated: Wed Feb  7 17:02:18 2024
 <BR><P>
-<H3>Maximum Stack Usage =        128 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =        120 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
 __rt_entry_main &rArr; main &rArr; HAL_RCC_OscConfig
 <P>
@@ -186,7 +186,7 @@ Global Symbols
 <P><STRONG><a name="[6d]"></a>__rt_entry_postsh_1</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$00000009))
 
 <P><STRONG><a name="[30]"></a>__rt_entry_main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$0000000D))
-<BR><BR>[Stack]<UL><LI>Max Depth = 128 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 120 + Unknown Stack Size
 <LI>Call Chain = __rt_entry_main &rArr; main &rArr; HAL_RCC_OscConfig
 </UL>
 <BR>[Calls]<UL><LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -477,7 +477,7 @@ Global Symbols
 <P><STRONG><a name="[3]"></a>SVC_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, stm32f0xx_it.o(.text.SVC_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f072xb.o(RESET)
 </UL>
-<P><STRONG><a name="[5]"></a>SysTick_Handler</STRONG> (Thumb, 8 bytes, Stack size 8 bytes, stm32f0xx_it.o(.text.SysTick_Handler))
+<P><STRONG><a name="[5]"></a>SysTick_Handler</STRONG> (Thumb, 36 bytes, Stack size 8 bytes, stm32f0xx_it.o(.text.SysTick_Handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = SysTick_Handler
 </UL>
 <BR>[Calls]<UL><LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_IncTick
@@ -487,8 +487,8 @@ Global Symbols
 <P><STRONG><a name="[26]"></a>SystemInit</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, system_stm32f0xx.o(.text.SystemInit))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f072xb.o(.text)
 </UL>
-<P><STRONG><a name="[31]"></a>main</STRONG> (Thumb, 252 bytes, Stack size 80 bytes, main.o(.text.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 128<LI>Call Chain = main &rArr; HAL_RCC_OscConfig
+<P><STRONG><a name="[31]"></a>main</STRONG> (Thumb, 212 bytes, Stack size 72 bytes, main.o(.text.main))
+<BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = main &rArr; HAL_RCC_OscConfig
 </UL>
 <BR>[Calls]<UL><LI><a href="#[3f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
 <LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_RCC_ClockConfig
