@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32f072xb.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -69,6 +70,22 @@ int main(void)
 	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;	// Enable the GPIOC Clock in RCC
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;	// Enable the USER Button PA0
 	
+	// Use the RCC to enable the peripheral clock to the SYSCFG peripheral.
+	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN;
+	
+	// Enable the selected EXTI interrupt
+	NVIC_EnableIRQ(EXTI0_1_IRQn);
+	
+	/* Set the priority for the interrupt to 1 (high-priority)	*/ // /*
+	NVIC_SetPriority(EXTI0_1_IRQn, 1);	// */
+	
+	/* Set the priority for the interrupt to 3 (low-priority)		*/  /*
+	NVIC_SetPriority(EXTI0_1_IRQn, 3);	// */
+	
+	// Change the Systick interrupt priority to 2 (medium priority)
+	//NVIC_SetPriority(SysTick_IRQn, 2);
+	
+	
 	/* Initialize all LEDs: RED (PC6), BLUE (PC7), ORANGE (PC8), GREEN (PC9)	*/ // /*
 	// (Reset state: 00)
 	GPIOC->MODER &= ~(GPIO_MODER_MODER6_Msk | GPIO_MODER_MODER7_Msk | GPIO_MODER_MODER8_Msk | GPIO_MODER_MODER9_Msk);
@@ -100,84 +117,44 @@ int main(void)
 	GPIOA->OSPEEDR &= ~(GPIO_OSPEEDR_OSPEEDR0_Msk);
 	
 	// Configure Pull-down for PA0	(10)
-	GPIOA->PUPDR &= ~GPIO_PUPDR_PUPDR0_Msk; // clear bits first
-	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1;		// Set to Pull-down
+	GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR0_Msk); // clear bits first
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1;			// Set to Pull-down
 	
 	// Enable/unmask interrupt generation on EXTI input line 0 (EXTI0).
-	//EXTI->IMR |= (1<<0);
 	EXTI->IMR |= EXTI_IMR_MR0_Msk;
 	
 	// Configure the EXTI input line 0 to have a rising-edge trigger.
-	//EXTI->RTSR |= (1<<0);
 	EXTI->RTSR |= EXTI_RTSR_TR0_Msk;
 	
-	
-	// Use the RCC to enable the peripheral clock to the SYSCFG peripheral.
-	
-	
-	
+	// Configure the multiplexer to route PA0 to the EXTI input line 0 (EXTI0).
+	SYSCFG->EXTICR[1] &= ~(SYSCFG_EXTICR1_EXTI0_PA);
 	
 	while (1) {
-		/* Debouncer Code							*/  /*
-		int input_signal = GPIOA->IDR & 1;	// Set and check for USER button input
-		debouncer = (debouncer << 1); 			// Always shift every loop iteration
-		
-		if (input_signal) {		// If input signal is set/high
-			debouncer |= 0x01;	// Set lowest bit of bit-vector
-		}
-		
-		// This code triggers only once when transitioning to steady high!
-		if (debouncer == 0x7FFFFFFF) {
-			if (state == 0){	//				*/
-				
-				/* ORANGE and GREEN LEDs	*/  /*
-				GPIOC->BSRR = GPIO_BSRR_BR_8;	// Set PC6 low
-				GPIOC->BSRR = GPIO_BSRR_BS_9;	// Set PC7 high */
-				
-				/* RED and BLUE LEDs 			*/  /*
-				GPIOC->BSRR = GPIO_BSRR_BR_6; // Set PC6 low
-				GPIOC->BSRR = GPIO_BSRR_BS_7; // Set PC7 high */
-				
-				/* Toggle to state 1			*/  /*
-				state = 1;
-			}
-			else {	// state == 1				*/ 
-				
-				/* ORANGE and GREEN LEDs	*/  /*
-				GPIOC->BSRR = GPIO_BSRR_BS_8; // Set PC6 high
-				GPIOC->BSRR = GPIO_BSRR_BR_9; // Set PC7 low */
-				
-				/* RED and BLUE LEDs 			*/  /*
-				GPIOC->BSRR = GPIO_BSRR_BS_6; // Set PC6 high
-				GPIOC->BSRR = GPIO_BSRR_BR_7; // Set PC7 low */
-				
-				/* Toggle to state 0 			*/  /*
-				state = 0;
-			}
-		} 
-		// When button is bouncing the bit-vector value is random since bits are set when the button is high and not when it bounces low.		
-		HAL_Delay(1); // Delay 1ms */
-
-
-		/* Part 1.5.1 - ORANGE and GREEN LEDs
-		Toggle the output state of PC8 (ORANGE) and PC9 (GREEN) */  /*
-		HAL_Delay(200);
-		GPIOC->ODR ^= (GPIO_ODR_8 | GPIO_ODR_9); // */
-		
-		/*Part 1.5.1 - RED and BLUE LEDs
-		Toggle the output state of PC6 (RED) and PC7 (BLUE) 		*/  /*
-		HAL_Delay(200);
-		GPIOC->ODR ^= (GPIO_ODR_6 | GPIO_ODR_7); // */
-		
-		
-		/* Toggle RED PC6
-		Toggle the output state of PC8 (ORANGE) and PC9 (GREEN) */ // /*
-		HAL_Delay(400);
+		/* Toggle RED PC6 */ // /*
+		HAL_Delay(400); // 400ms delay
 		GPIOC->ODR ^= (GPIO_ODR_6); // */
-		
-		
-		
 	}
+}
+
+volatile uint32_t count2 = 0;	// Declare global count variable
+// Use the handler name to declare the handler function in main.c
+void EXTI0_1_IRQHandler(void)
+{
+	// Check triggering of EXTI0
+	EXTI->PR |= EXTI_PR_PR0;
+	
+	// Toggle ORANGE and GREEN LEDs
+	GPIOC->ODR ^= (GPIO_ODR_8 | GPIO_ODR_9);
+	
+	
+	/* Second sign-off */  /*
+	// Add a delay loop of roughly 1-2 seconds to the EXTI interrupt handler
+	for (count2 = 0; count2 < 1500000; count2++){
+		// Empty loop that acts as delay.
+	}
+	
+	// Add a second ORANGE and GREEN LED toggle
+	GPIOC->ODR ^= (GPIO_ODR_8 | GPIO_ODR_9); // */
 }
 
 /**
