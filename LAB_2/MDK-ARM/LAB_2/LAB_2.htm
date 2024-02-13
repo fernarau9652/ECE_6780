@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LAB_2\LAB_2.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LAB_2\LAB_2.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6210000: Last Updated: Sat Feb 10 15:33:09 2024
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6210000: Last Updated: Tue Feb 13 09:08:13 2024
 <BR><P>
 <H3>Maximum Stack Usage =        120 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -384,7 +384,9 @@ Global Symbols
 
 <P><STRONG><a name="[79]"></a>__semihosting_library_function</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, indicate_semi.o(.text), UNUSED)
 
-<P><STRONG><a name="[b]"></a>EXTI0_1_IRQHandler</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, main.o(.text.EXTI0_1_IRQHandler))
+<P><STRONG><a name="[b]"></a>EXTI0_1_IRQHandler</STRONG> (Thumb, 96 bytes, Stack size 8 bytes, main.o(.text.EXTI0_1_IRQHandler))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = EXTI0_1_IRQHandler
+</UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f072xb.o(RESET)
 </UL>
 <P><STRONG><a name="[3f]"></a>HAL_Delay</STRONG> (Thumb, 32 bytes, Stack size 16 bytes, stm32f0xx_hal.o(.text.HAL_Delay))
