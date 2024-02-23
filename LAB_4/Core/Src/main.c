@@ -18,7 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-//#include <stdio.h>
+#include "stm32f072xb.h"
 
 // Functions utilized in main
 void initLEDs(void);
@@ -45,19 +45,14 @@ int main(void)
 	// initialize USART
 	initUSART();
 	
+	// NVIC setup for USART3 handler
+	NVIC_EnableIRQ(USART3_4_IRQn);
+	
+	// Set the priority for the interrupt to 1 (high-priority)
+	NVIC_SetPriority(USART3_4_IRQn, 1);	
+	
 	// initial Block transmit for a string
 	//initBlockTransmit();
-	
-	
-	/* Transmit 1 character test */  /*
-	char character = 'K';
-	charTransmit(character);	// */
-	
-	/* Transmit a string test */  /*
-	const char *string = "HELLO USART! ";
-	//const char *string = "hello usart! ";
-	stringTransmit(string);	// */
-	
 	
   
   while (1)
@@ -165,7 +160,6 @@ void initUSART(void)
 
 void initBlockTransmit(void)
 {
-	
 	/* Transmit a string test */ // /*
 	//const char *string = "HELLO USART! hello usart! ";
 	const char *string = "ABCDEFG NOPQRST abcdefg nopqrst ";
@@ -173,17 +167,43 @@ void initBlockTransmit(void)
 }
 
 
-// initial count to avoid massive putty output files
-uint32_t count = 0;
-
 // Transmit 1 character
 void charTransmit(char c)
 {
 	while ((USART3->ISR & USART_ISR_TXE) == 0){
 	}
 	USART3->TDR = c;
+	
+	/* Checks the character and toggles an LED or outputs error message to console */ // /*
+	switch(c){
+		case 'r':
+		case 'R':
+			//printf("Toggle Red LED\n");
+			GPIOC->ODR ^= GPIO_ODR_6;
+			break;
+		case 'b':
+		case 'B':
+			//printf("Toggle Blue LED\n");
+			GPIOC->ODR ^= GPIO_ODR_7;
+			break;
+		case 'o':
+		case 'O':
+			//printf("Toggle Orange LED\n");
+			GPIOC->ODR ^= GPIO_ODR_8;
+			break;
+		case 'g':
+		case 'G':
+			//printf("Toggle Green LED\n");
+			GPIOC->ODR ^= GPIO_ODR_9;
+			break;
+		default:
+			//printf("Error: Unsupported character '%c'\n", *text);
+			break;
+	}	// */
 }	
 
+// initial count to avoid massive putty output files
+uint32_t count = 0;
 
 // Transmit a string of characters
 void stringTransmit(const char *text)
@@ -192,32 +212,6 @@ void stringTransmit(const char *text)
 		HAL_Delay(50);
 		charTransmit(*text);
 		
-		// Toggle LEDs based on characters
-		switch(*text){
-			case 'r':
-			case 'R':
-				//printf("Toggle Red LED\n");
-				GPIOC->ODR ^= GPIO_ODR_6;
-				break;
-			case 'b':
-			case 'B':
-				//printf("Toggle Blue LED\n");
-				GPIOC->ODR ^= GPIO_ODR_7;
-				break;
-			case 'o':
-			case 'O':
-				//printf("Toggle Orange LED\n");
-				GPIOC->ODR ^= GPIO_ODR_8;
-				break;
-			case 'g':
-			case 'G':
-				//printf("Toggle Green LED\n");
-				GPIOC->ODR ^= GPIO_ODR_9;
-				break;
-			default:
-				//printf("Error: Unsupported character '%c'\n", *text);
-				break;
-		}
 		text++;
 		
 		// limits the amount of characters that can be transmitted
@@ -230,7 +224,12 @@ void stringTransmit(const char *text)
 	}
 }
 
+// NVIC USART3 handler
+void USART3_4_IRQHandler(void)
+{
 
+
+}
 
 
 
