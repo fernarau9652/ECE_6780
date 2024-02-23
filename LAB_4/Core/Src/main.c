@@ -19,10 +19,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-
+// Functions utilized in main
 void initLEDs(void);
 void initUSART(void);
 void charTransmit(char c);
+void stringTransmit(const char *text);
+
+
 void SystemClock_Config(void);
 
 /**
@@ -40,17 +43,18 @@ int main(void)
 	// initialize USART
 	initUSART();
 	
+	/* Transmit 1 character test */  /*
 	char character = 'K';
+	charTransmit(character);	// */
 	
-	
-	
-	
-	
-	
+	/* Transmit a string test */ // /*
+	const char *string = "Hello USART!";
+	stringTransmit(string);	// */
   
   while (1)
   {
-    charTransmit(character);
+    
+		
   }
 }
 
@@ -143,7 +147,7 @@ void initUSART(void)
 	USART3->BRR = f_clk/baud_rate;
 	
 	// Enable the transmitter and receiver
-	USART3->CR1 |= (USART_CR1_RE | USART_CR1_TE);
+	USART3->CR1 |= (USART_CR1_TE | USART_CR1_RE);
 	
 	// Enable the USART peripheral
 	USART3->CR1 |= USART_CR1_UE;
@@ -156,6 +160,10 @@ void initBlockTransmit(void)
 }
 
 
+// initial count to avoid massive putty output files
+uint32_t count = 0;
+
+// Transmit 1 character
 void charTransmit(char c)
 {
 	while ((USART3->ISR & USART_ISR_TXE) == 0){
@@ -164,6 +172,22 @@ void charTransmit(char c)
 }	
 
 
+// Transmit a string of characters
+void stringTransmit(const char *text)
+{
+	while(*text != '\0'){
+		charTransmit(*text);
+		text++;
+		
+		// limits the amount of characters that can be transmitted
+		if (count == 30)
+		{
+			count = 0;
+			break;
+		}
+		count++;
+	}
+}
 
 
 /**
