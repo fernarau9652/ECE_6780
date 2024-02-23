@@ -108,7 +108,7 @@ int main(void)
 	// Set the output enable bits for channels 1 & 2 in the CCER register
 	TIM3->CCER	|=	(TIM_CCER_CC1E | TIM_CCER_CC2E);
 	
-	/* Set the capture/compare registers (CCRx) for both channels to 20% of your ARR value */ // /*
+	/* Set the capture/compare registers (CCRx) for both channels to 20% of your ARR value */  /*
 	TIM3->CCR1	 =	8; 	// Controls RED  LED; 40*20% = 8
 	TIM3->CCR2	 =	8; 	// Controls BLUE LED; 40*20% = 8		*/
 	
@@ -116,7 +116,7 @@ int main(void)
 	TIM3->CCR1	 =	40;	// Controls RED  LED; 40*100% = 40
 	TIM3->CCR2	 =	5;	// Controls BLUE LED; 40*12.5% = 5	*/
 	
-	/* BLUE LED more dim */  /*
+	/* BLUE LED more dim */ // /*
 	TIM3->CCR1	 =	5; 	// Controls RED  LED; 40*12.5% = 5
 	TIM3->CCR2	 =	5; 	// Controls BLUE LED; 40*12.5% = 5	*/
 	
