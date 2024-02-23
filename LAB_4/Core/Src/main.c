@@ -18,12 +18,14 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+//#include <stdio.h>
 
 // Functions utilized in main
 void initLEDs(void);
 void initUSART(void);
 void charTransmit(char c);
 void stringTransmit(const char *text);
+void initBlockTransmit(void);
 
 
 void SystemClock_Config(void);
@@ -43,17 +45,25 @@ int main(void)
 	// initialize USART
 	initUSART();
 	
+	// initial Block transmit for a string
+	//initBlockTransmit();
+	
+	
 	/* Transmit 1 character test */  /*
 	char character = 'K';
 	charTransmit(character);	// */
 	
-	/* Transmit a string test */ // /*
-	const char *string = "Hello USART!";
+	/* Transmit a string test */  /*
+	const char *string = "HELLO USART! ";
+	//const char *string = "hello usart! ";
 	stringTransmit(string);	// */
+	
+	
   
   while (1)
   {
-    
+		HAL_Delay(300);
+    initBlockTransmit();
 		
   }
 }
@@ -123,7 +133,6 @@ void initLEDs(void)
 	GPIOC->BSRR = GPIO_BSRR_BS_8;	// Set PC8 high
 	GPIOC->BSRR = GPIO_BSRR_BS_9; // Set PC9 high
 	//	*/
-
 }
 
 
@@ -157,6 +166,10 @@ void initUSART(void)
 void initBlockTransmit(void)
 {
 	
+	/* Transmit a string test */ // /*
+	//const char *string = "HELLO USART! hello usart! ";
+	const char *string = "ABCDEFG NOPQRST abcdefg nopqrst ";
+	stringTransmit(string);	// */
 }
 
 
@@ -176,18 +189,49 @@ void charTransmit(char c)
 void stringTransmit(const char *text)
 {
 	while(*text != '\0'){
+		HAL_Delay(50);
 		charTransmit(*text);
+		
+		// Toggle LEDs based on characters
+		switch(*text){
+			case 'r':
+			case 'R':
+				//printf("Toggle Red LED\n");
+				GPIOC->ODR ^= GPIO_ODR_6;
+				break;
+			case 'b':
+			case 'B':
+				//printf("Toggle Blue LED\n");
+				GPIOC->ODR ^= GPIO_ODR_7;
+				break;
+			case 'o':
+			case 'O':
+				//printf("Toggle Orange LED\n");
+				GPIOC->ODR ^= GPIO_ODR_8;
+				break;
+			case 'g':
+			case 'G':
+				//printf("Toggle Green LED\n");
+				GPIOC->ODR ^= GPIO_ODR_9;
+				break;
+			default:
+				//printf("Error: Unsupported character '%c'\n", *text);
+				break;
+		}
 		text++;
 		
 		// limits the amount of characters that can be transmitted
-		if (count == 30)
-		{
-			count = 0;
-			break;
-		}
-		count++;
+		//if (count == 30)
+		//{
+		//	count = 0;
+		//	break;
+		//}
+		//count++;
 	}
 }
+
+
+
 
 
 /**
