@@ -26,7 +26,7 @@ void initUSART(void);
 void charTransmit(char c);
 void stringTransmit(const char *text);
 void initBlockTransmit(void);
-
+void receiveChar(void);
 
 void SystemClock_Config(void);
 
@@ -39,26 +39,29 @@ int main(void)
   HAL_Init();
   SystemClock_Config();
 	
+	// Enable GPIOC and USART3 Clock in RCC
+	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+	RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
+	
 	// initialize LEDs
 	initLEDs();
 	
 	// initialize USART
 	initUSART();
 	
+	// initial Block transmit for a string
+	initBlockTransmit();
+	
+	/* Uncomment after check-off 1 */  /*
 	// NVIC setup for USART3 handler
 	NVIC_EnableIRQ(USART3_4_IRQn);
 	
 	// Set the priority for the interrupt to 1 (high-priority)
-	NVIC_SetPriority(USART3_4_IRQn, 1);	
-	
-	// initial Block transmit for a string
-	//initBlockTransmit();
-	
+	NVIC_SetPriority(USART3_4_IRQn, 1);	// */
   
   while (1)
   {
-		HAL_Delay(300);
-    initBlockTransmit();
+		receiveChar();
 		
   }
 }
@@ -102,10 +105,7 @@ void SystemClock_Config(void)
 
 // Initialize LEDs function
 void initLEDs(void)
-{
-	// Enable GPIOC Clock in RCC
-	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
-	
+{	
 	/* Initialize all LEDs: RED (PC6), BLUE (PC7), ORANGE (PC8), GREEN (PC9)	*/ // /*
 	// (Reset state: 00)
 	GPIOC->MODER &= ~(GPIO_MODER_MODER6_Msk | GPIO_MODER_MODER7_Msk | GPIO_MODER_MODER8_Msk | GPIO_MODER_MODER9_Msk);
@@ -134,12 +134,9 @@ void initLEDs(void)
 // Initialize USART function
 void initUSART(void)
 {
-	// Enable USART3 in the RCC
-	RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
-
 	// Set Moder 4 and Moder 5 to alternate function mode
 	GPIOC->MODER &= ~(GPIO_MODER_MODER4_Msk | GPIO_MODER_MODER5_Msk);	// reset bits
-	GPIOC->MODER |= (GPIO_MODER_MODER4_1| GPIO_MODER_MODER5_1);	// set to AF mode (10)
+	GPIOC->MODER |= (GPIO_MODER_MODER4_1 | GPIO_MODER_MODER5_1);	// set to AF mode (10)
 	
 	// Set PC4 and PC5 to AF1
 	GPIOC->AFR[0] |= (0x1 << GPIO_AFRL_AFSEL4_Pos); 
@@ -151,7 +148,7 @@ void initUSART(void)
 	USART3->BRR = f_clk/baud_rate;
 	
 	// Enable the transmitter and receiver
-	USART3->CR1 |= (USART_CR1_TE | USART_CR1_RE);
+	USART3->CR1 |= (USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE);
 	
 	// Enable the USART peripheral
 	USART3->CR1 |= USART_CR1_UE;
@@ -161,8 +158,8 @@ void initUSART(void)
 void initBlockTransmit(void)
 {
 	/* Transmit a string test */ // /*
-	//const char *string = "HELLO USART! hello usart! ";
-	const char *string = "ABCDEFG NOPQRST abcdefg nopqrst ";
+	const char *string = "Toggle LEDs: Press R, G, B, or O keys; ";
+	//const char *string = "ABCDEFG NOPQRST abcdefg nopqrst ";
 	stringTransmit(string);	// */
 }
 
@@ -173,33 +170,6 @@ void charTransmit(char c)
 	while ((USART3->ISR & USART_ISR_TXE) == 0){
 	}
 	USART3->TDR = c;
-	
-	/* Checks the character and toggles an LED or outputs error message to console */ // /*
-	switch(c){
-		case 'r':
-		case 'R':
-			//printf("Toggle Red LED\n");
-			GPIOC->ODR ^= GPIO_ODR_6;
-			break;
-		case 'b':
-		case 'B':
-			//printf("Toggle Blue LED\n");
-			GPIOC->ODR ^= GPIO_ODR_7;
-			break;
-		case 'o':
-		case 'O':
-			//printf("Toggle Orange LED\n");
-			GPIOC->ODR ^= GPIO_ODR_8;
-			break;
-		case 'g':
-		case 'G':
-			//printf("Toggle Green LED\n");
-			GPIOC->ODR ^= GPIO_ODR_9;
-			break;
-		default:
-			//printf("Error: Unsupported character '%c'\n", *text);
-			break;
-	}	// */
 }	
 
 // initial count to avoid massive putty output files
@@ -209,20 +179,46 @@ uint32_t count = 0;
 void stringTransmit(const char *text)
 {
 	while(*text != '\0'){
-		HAL_Delay(50);
+		HAL_Delay(5);
 		charTransmit(*text);
-		
 		text++;
-		
-		// limits the amount of characters that can be transmitted
-		//if (count == 30)
-		//{
-		//	count = 0;
-		//	break;
-		//}
-		//count++;
 	}
 }
+
+
+void receiveChar(void)
+{
+	char ch;
+	
+	if((USART3->ISR & USART_ISR_RXNE)) {
+		ch = USART3->RDR; // & (0xFF); // Bottom 8 bits
+		
+	/* Checks the character and toggles an LED or outputs error message to console */ // /*
+		switch(ch){
+			case 'r':
+			case 'R':
+				GPIOC->ODR ^= GPIO_ODR_6;
+				break;
+			case 'b':
+			case 'B':
+				GPIOC->ODR ^= GPIO_ODR_7;
+				break;
+			case 'o':
+			case 'O':
+				GPIOC->ODR ^= GPIO_ODR_8;
+				break;
+			case 'g':
+			case 'G':
+				GPIOC->ODR ^= GPIO_ODR_9;
+				break;
+			default:
+				stringTransmit("Error: Unsupported Character; ");
+				break;
+		}	// */
+	}
+}
+
+
 
 // NVIC USART3 handler
 void USART3_4_IRQHandler(void)
