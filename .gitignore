@@ -53,7 +53,8 @@ dkms.conf
 
 # build files
 *.axf
-*.uvguix.*
-*.build*
-*.htm
-*.dep
+*LAB_*.uvguix.*
+*LAB_*.build_log.htm
+*LAB_*.htm
+*LAB_*_LAB_*.dep
+*LAB_*.uvguix.Owner
