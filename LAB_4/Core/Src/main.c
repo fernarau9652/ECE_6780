@@ -24,11 +24,16 @@
 void initLEDs(void);
 void initUSART(void);
 void charTransmit(char c);
-void stringTransmit(const char *text);
+void stringTransmit(char* text);
 void initBlockTransmit(void);
-void receiveChar(void);
+void receiveChar_I(void);
+void receiveChar_II(void);
 
 void SystemClock_Config(void);
+
+// Global Variables
+volatile char received;
+volatile uint8_t received_flag;
 
 /**
   * @brief  The application entry point.
@@ -52,17 +57,25 @@ int main(void)
 	// initial Block transmit for a string
 	initBlockTransmit();
 	
-	/* Uncomment after check-off 1 */  /*
+	received_flag = 0; // Initialized flag to 0
+	received = NULL; // Initialized received info to null
+	
+	/* Uncomment after check-off 1 */ // /*
 	// NVIC setup for USART3 handler
 	NVIC_EnableIRQ(USART3_4_IRQn);
 	
-	// Set the priority for the interrupt to 1 (high-priority)
-	NVIC_SetPriority(USART3_4_IRQn, 1);	// */
+	// Set the priority for the interrupt to 2 (medium-priority)
+	NVIC_SetPriority(USART3_4_IRQn, 2);	// */
   
   while (1)
   {
-		receiveChar();
+		/* Check-off part 1*/  /*
+		receiveChar_I(); // */
 		
+		
+		/* Check-off part 2*/ // /*
+		receiveChar_II(); 
+		continue; // */
   }
 }
 
@@ -102,10 +115,8 @@ void SystemClock_Config(void)
 }
 
 
-
 // Initialize LEDs function
-void initLEDs(void)
-{	
+void initLEDs(void) {	
 	/* Initialize all LEDs: RED (PC6), BLUE (PC7), ORANGE (PC8), GREEN (PC9)	*/ // /*
 	// (Reset state: 00)
 	GPIOC->MODER &= ~(GPIO_MODER_MODER6_Msk | GPIO_MODER_MODER7_Msk | GPIO_MODER_MODER8_Msk | GPIO_MODER_MODER9_Msk);
@@ -132,8 +143,7 @@ void initLEDs(void)
 
 
 // Initialize USART function
-void initUSART(void)
-{
+void initUSART(void) {
 	// Set Moder 4 and Moder 5 to alternate function mode
 	GPIOC->MODER &= ~(GPIO_MODER_MODER4_Msk | GPIO_MODER_MODER5_Msk);	// reset bits
 	GPIOC->MODER |= (GPIO_MODER_MODER4_1 | GPIO_MODER_MODER5_1);	// set to AF mode (10)
@@ -147,7 +157,7 @@ void initUSART(void)
 	uint32_t f_clk = HAL_RCC_GetHCLKFreq();
 	USART3->BRR = f_clk/baud_rate;
 	
-	// Enable the transmitter and receiver
+	// Enable the transmitter, receiver, and receiver not empty
 	USART3->CR1 |= (USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE);
 	
 	// Enable the USART peripheral
@@ -155,19 +165,31 @@ void initUSART(void)
 }
 
 
-void initBlockTransmit(void)
-{
-	/* Transmit a string test */ // /*
-	const char *string = "Toggle LEDs: Press R, G, B, or O keys; ";
-	//const char *string = "ABCDEFG NOPQRST abcdefg nopqrst ";
+// NVIC USART3 handler
+void USART3_4_IRQHandler(void) {
+	if ((USART3->ISR & USART_ISR_RXNE)) {
+	// save the receive register's value into a global variable
+		received = (USART3->RDR | 0xFF);
+		received_flag = 1;
+	}
+}
+
+
+// Initial Block Transmit
+void initBlockTransmit(void) {
+	/* Check-off part 1 */  /*
+	char* string = "Toggle LEDs: Press R, G, B, or O keys; ";
+	stringTransmit(string);	// */
+	
+	/* Check-off part 2 */ // /*
+	char* string = "CMD? 1st - R, G, B, or O; 2nd: 0-OFF, 1-ON, 2-TOGGLE; \n";
 	stringTransmit(string);	// */
 }
 
 
 // Transmit 1 character
-void charTransmit(char c)
-{
-	while ((USART3->ISR & USART_ISR_TXE) == 0){
+void charTransmit(char c) {
+	while ((USART3->ISR & USART_ISR_TXE) == 0) {
 	}
 	USART3->TDR = c;
 }	
@@ -176,25 +198,22 @@ void charTransmit(char c)
 uint32_t count = 0;
 
 // Transmit a string of characters
-void stringTransmit(const char *text)
-{
-	while(*text != '\0'){
-		HAL_Delay(5);
+void stringTransmit(char* text) {
+	while(*text != '\0') {
 		charTransmit(*text);
 		text++;
 	}
 }
 
 
-void receiveChar(void)
-{
+void receiveChar_I(void) {
 	char ch;
 	
 	if((USART3->ISR & USART_ISR_RXNE)) {
-		ch = USART3->RDR; // & (0xFF); // Bottom 8 bits
+		ch = USART3->RDR; // store received value as ch
 		
 	/* Checks the character and toggles an LED or outputs error message to console */ // /*
-		switch(ch){
+		switch(ch) {
 			case 'r':
 			case 'R':
 				GPIOC->ODR ^= GPIO_ODR_6;
@@ -219,14 +238,77 @@ void receiveChar(void)
 }
 
 
-
-// NVIC USART3 handler
-void USART3_4_IRQHandler(void)
-{
-
-
+void receiveChar_II(void) {
+	char ch_LED;
+	char ch_ACT;
+	int LED_ACT;
+	
+	// Asks for 1st character
+	stringTransmit("1st char: ");
+	
+	// Waits until 1st character is received
+	while(!(USART3->ISR & USART_ISR_RXNE)) {
+	}
+	received = USART3->RDR; // store 1st character
+	charTransmit(received); // transmit 1st character
+	ch_LED = received; // store LED char
+	
+	// Determine the LED
+	switch(ch_LED) {
+		case 'r':
+		case 'R':
+			LED_ACT = GPIO_ODR_6;
+			stringTransmit(" -- LED: RED -- ");
+			break;
+		case 'b':
+		case 'B':
+			LED_ACT = GPIO_ODR_7;
+			stringTransmit(" -- LED: BLUE -- ");
+			break;
+		case 'o':
+		case 'O':
+			LED_ACT = GPIO_ODR_8;
+			stringTransmit(" -- LED: ORANGE -- ");
+			break;
+		case 'g':
+		case 'G':
+			LED_ACT = GPIO_ODR_9;
+			stringTransmit(" -- LED: GREEN -- ");
+			break;
+		default:
+			stringTransmit(" -- Error: Unsupported 1st Character -- \n");
+			return;
+	}
+	
+	// Asks for 2nd character
+	stringTransmit("2nd char: ");
+	
+	// Waits until 2nd character is received
+	while(!(USART3->ISR & USART_ISR_RXNE)) {
+	}
+	received = USART3->RDR; // store 2nd character
+	charTransmit(received); // transmit 2nd character
+	ch_ACT = received; // store ACT char
+	
+	// Determine the LED action
+	switch(ch_ACT) {
+		case '0':
+			GPIOC->ODR &= ~(LED_ACT);
+			stringTransmit(" -- ACT: OFF -- ");
+			break;
+		case '1':
+			GPIOC->ODR |= (LED_ACT);
+			stringTransmit(" -- ACT: ON -- ");
+			break;
+		case '2':
+			GPIOC->ODR ^= (LED_ACT);
+			stringTransmit(" -- ACT: TOGGLE -- ");
+			break;
+		default:
+			stringTransmit(" -- Error: Unsupported 2nd Character -- \n");
+			return;
+	}	
 }
-
 
 
 /**
