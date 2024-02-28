@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LAB_4\LAB_4.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LAB_4\LAB_4.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6210000: Last Updated: Sun Feb 25 13:59:36 2024
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6210000: Last Updated: Mon Feb 26 16:11:29 2024
 <BR><P>
 <H3>Maximum Stack Usage =        120 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -482,10 +482,10 @@ Global Symbols
 <P><STRONG><a name="[23]"></a>USART3_4_IRQHandler</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, main.o(.text.USART3_4_IRQHandler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f072xb.o(RESET)
 </UL>
-<P><STRONG><a name="[31]"></a>main</STRONG> (Thumb, 424 bytes, Stack size 72 bytes, main.o(.text.main))
+<P><STRONG><a name="[31]"></a>main</STRONG> (Thumb, 344 bytes, Stack size 72 bytes, main.o(.text.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = main &rArr; HAL_RCC_OscConfig
 </UL>
-<BR>[Calls]<UL><LI><a href="#[4b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;receiveChar_II
+<BR>[Calls]<UL><LI><a href="#[4b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;receiveChar_I
 <LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_RCC_GetHCLKFreq
 <LI><a href="#[45]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_RCC_ClockConfig
 <LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_RCC_OscConfig
@@ -496,8 +496,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_entry_main
 </UL>
 
-<P><STRONG><a name="[4b]"></a>receiveChar_II</STRONG> (Thumb, 4424 bytes, Stack size 36 bytes, main.o(.text.receiveChar_II))
-<BR><BR>[Stack]<UL><LI>Max Depth = 36<LI>Call Chain = receiveChar_II
+<P><STRONG><a name="[4b]"></a>receiveChar_I</STRONG> (Thumb, 1000 bytes, Stack size 16 bytes, main.o(.text.receiveChar_I))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = receiveChar_I
 </UL>
 <BR>[Called By]<UL><LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
