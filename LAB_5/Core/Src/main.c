@@ -18,34 +18,11 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32f072xb.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+void initLEDs(void);
 
-/* USER CODE END Includes */
 
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
@@ -62,21 +39,16 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
+	
+	// Enable GPIOC, GPIOB, and I2C Clock in RCC
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_I2C2_CLK_ENABLE();
+	
+	// initialize LEDs (used as a reference for functions)
+	initLEDs();
 
   /* USER CODE BEGIN SysInit */
 
@@ -102,6 +74,39 @@ int main(void)
   * @brief System Clock Configuration
   * @retval None
   */
+
+
+void initLEDs(void) {	
+	/* Initialize all LEDs: RED (PC6), BLUE (PC7), ORANGE (PC8), GREEN (PC9)	*/ // /*
+	// (Reset state: 00)
+	GPIOC->MODER &= ~(GPIO_MODER_MODER6_Msk | GPIO_MODER_MODER7_Msk | GPIO_MODER_MODER8_Msk | GPIO_MODER_MODER9_Msk);
+	
+	// (General purpose: 01) 
+	GPIOC->MODER |= (GPIO_MODER_MODER6_0 | GPIO_MODER_MODER7_0 | GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0);
+	
+	// Configure Push/Pull Output type for PC6, PC7, PC8, and PC9	(00)
+	GPIOC->OTYPER &= ~(GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7 | GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0);
+	
+	// Configure low speed for PC6, PC7, PC8, and PC9	(00)
+	GPIOC->OSPEEDR &= ~(GPIO_OSPEEDR_OSPEEDR6_Msk | GPIO_OSPEEDR_OSPEEDR7_Msk | GPIO_OSPEEDR_OSPEEDR8_Msk | GPIO_OSPEEDR_OSPEEDR9_Msk);
+	
+	// Configure no pull-up/down resistors for PC6, PC7, PC8, and PC9	(00)
+	GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR6_Msk | GPIO_PUPDR_PUPDR7_Msk | GPIO_PUPDR_PUPDR8_Msk | GPIO_PUPDR_PUPDR9_Msk);
+	
+	// Initialize pins to logic high and the other to low.
+	GPIOC->BSRR = GPIO_BSRR_BS_6;	// Set PC6 high
+	GPIOC->BSRR = GPIO_BSRR_BS_7; // Set PC7 high
+	GPIOC->BSRR = GPIO_BSRR_BS_8;	// Set PC8 high
+	GPIOC->BSRR = GPIO_BSRR_BS_9; // Set PC9 high
+	//	*/
+}
+
+
+
+
+
+
+
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};

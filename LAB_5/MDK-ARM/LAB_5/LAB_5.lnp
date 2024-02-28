@@ -1,0 +1,25 @@
+--cpu Cortex-M0
+"lab_5\startup_stm32f072xb.o"
+"lab_5\main.o"
+"lab_5\stm32f0xx_it.o"
+"lab_5\stm32f0xx_hal_msp.o"
+"lab_5\stm32f0xx_hal_tim.o"
+"lab_5\stm32f0xx_hal_tim_ex.o"
+"lab_5\stm32f0xx_hal_rcc.o"
+"lab_5\stm32f0xx_hal_rcc_ex.o"
+"lab_5\stm32f0xx_hal.o"
+"lab_5\stm32f0xx_hal_i2c.o"
+"lab_5\stm32f0xx_hal_i2c_ex.o"
+"lab_5\stm32f0xx_hal_gpio.o"
+"lab_5\stm32f0xx_hal_dma.o"
+"lab_5\stm32f0xx_hal_cortex.o"
+"lab_5\stm32f0xx_hal_pwr.o"
+"lab_5\stm32f0xx_hal_pwr_ex.o"
+"lab_5\stm32f0xx_hal_flash.o"
+"lab_5\stm32f0xx_hal_flash_ex.o"
+"lab_5\stm32f0xx_hal_exti.o"
+"lab_5\system_stm32f0xx.o"
+--strict --scatter "LAB_5\LAB_5.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "LAB_5.map" -o LAB_5\LAB_5.axf
