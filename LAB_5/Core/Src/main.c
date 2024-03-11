@@ -24,14 +24,7 @@ void initLEDs(void);
 
 
 void SystemClock_Config(void);
-/* USER CODE BEGIN PFP */
 
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
@@ -74,6 +67,34 @@ int main(void)
   * @brief System Clock Configuration
   * @retval None
   */
+
+void initPeriph(void) {
+	/* Initialize all configured peripherals */
+	// Set PB11 - AF1
+	GPIOB->MODER |= (GPIO_MODER_MODER11_1); // (Alternate function: 10)
+	//GPIOB->OTYPER |= (0x1 << GPIO_OTYPER_OT_11); // (Open-drain: 1)
+	GPIOB->OTYPER |= (1<<11); // (Open-drain: 1)
+	GPIOB->AFR[1] |= (0x1 << GPIO_AFRH_AFSEL11_Pos); // select I2C2_SDA as alternative function
+	
+	// Set PB13 - AF5
+	GPIOB->MODER |= (GPIO_MODER_MODER13_1); // (Alternate function: 10)
+	//GPIOB->OTYPER |= (0x1 << GPIO_OTYPER_OT_13); // (Open-drain: 1)
+	GPIOB->OTYPER |= (1<<13); // (Open-drain: 1)
+	GPIOB->AFR[1] |= (0x5 << GPIO_AFRH_AFSEL13_Pos); // select I2C2_SCL as alternative function
+	
+	// Set PB14 - initialize high
+	GPIOB->MODER |= (GPIO_MODER_MODER14_0); // (General purpose: 01)
+	GPIOB->OTYPER &= ~(GPIO_OTYPER_OT_14); // (Push-pull: 0)
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET); // set pin high
+
+	// Set PC0 - initialize high
+	GPIOC->MODER |= (GPIO_MODER_MODER0_0); // (General purpose: 01)
+	GPIOC->OTYPER &= ~(GPIO_OTYPER_OT_0); // (Push-pull: 0)
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET); // set pin high
+}
+
+
+
 
 
 void initLEDs(void) {	
