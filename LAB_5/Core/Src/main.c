@@ -36,7 +36,7 @@ int main(void)
   HAL_Init();
   SystemClock_Config();
 	
-	// Enable GPIOC, GPIOB, and I2C Clock in RCC
+	// Enable GPIOC, GPIOB, and I2C Clock in RCC (SCL)
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_I2C2_CLK_ENABLE();
