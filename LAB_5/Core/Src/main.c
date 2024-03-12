@@ -22,7 +22,7 @@
 
 void initLEDs(void);
 void initPeriph(void);
-
+void readReg(void);
 
 void SystemClock_Config(void);
 
@@ -48,25 +48,14 @@ int main(void)
 	initLEDs();
 	
 	
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
-  /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+	
+	
+	
   while (1)
   {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+    
   }
-  /* USER CODE END 3 */
+  
 }
 
 /**
@@ -108,7 +97,12 @@ void initPeriph(void) {
 	I2C2->TIMINGR |= (0x4  << I2C_TIMINGR_SCLDEL_Pos); // SCLDEL = 0x4 [bits 20-23]
 	//I2C2->TIMINGR |= 0x10420F13; // Alternative approach
 	
-	I2C2->CR1 |= I2C_CR1_PE; // Peripheral enable
+	// Peripheral enable
+	I2C2->CR1 |= I2C_CR1_PE; 
+	
+	// Clear the NBYTES and SADD bit fields
+	I2C2->CR2 &= ~((0x7F << 16) | (0x3FF << 0));
+	
 }
 
 /* Initialize the LEDs*/
@@ -130,15 +124,43 @@ void initLEDs(void) {
 	GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR6_Msk | GPIO_PUPDR_PUPDR7_Msk | GPIO_PUPDR_PUPDR8_Msk | GPIO_PUPDR_PUPDR9_Msk);
 	
 	// Initialize pins to logic high and the other to low.
-	GPIOC->BSRR = GPIO_BSRR_BS_6;	// Set PC6 high
-	GPIOC->BSRR = GPIO_BSRR_BS_7; // Set PC7 high
-	GPIOC->BSRR = GPIO_BSRR_BS_8;	// Set PC8 high
-	GPIOC->BSRR = GPIO_BSRR_BS_9; // Set PC9 high
+	GPIOC->BSRR = GPIO_BSRR_BR_6;	// Set PC6 low
+	GPIOC->BSRR = GPIO_BSRR_BR_7; // Set PC7 low
+	GPIOC->BSRR = GPIO_BSRR_BR_8;	// Set PC8 low
+	GPIOC->BSRR = GPIO_BSRR_BR_9; // Set PC9 low
 	//	*/
 }
 
 
+/* Part 1 */
+void readReg(void) {
+	// Congigure CR2 register
+	//I2C2->CR2 |= (1 << 16) | (0x6B << 1); // Alternative approach
+	I2C2->CR2 |= (0x6B << I2C_CR2_SADD_Pos);   // Set the L3GD20 slave address = 0x6B = 0110 1011 xb
+	I2C2->CR2 |= (0x1  << I2C_CR2_NBYTES_Pos); // Set the number of bytes to transmit = 1
+	I2C2->CR2 &= ~(I2C_CR2_RD_WRN);            // Set the RD_WRN to write operation
+	I2C2->CR2 |= (I2C_CR2_START);              // Set START bit
+	
+	// Wait for TXIS or NACKF flags are set
+	while(1) {
+		if ((I2C2->ISR & I2C_ISR_TXIS) | (I2C2->ISR & I2C_ISR_NACKF)) {
+			break;
+		}
+	}
+	
+	// Turn on LED for NACKF debugging
+	if (I2C2->ISR & I2C_ISR_NACKF) {
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET);
+	
+	}
+	
+	// Write the address of the "WHO_AM_I" register into TXDR
+	I2C2->TXDR = 0x0F;
+	
 
+
+
+}
 
 
 
