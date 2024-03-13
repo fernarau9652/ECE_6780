@@ -47,7 +47,8 @@ int main(void)
 	// initialize LEDs
 	initLEDs();
 	
-	
+	// Part 1
+	readReg();
 	
 	
 	
@@ -135,31 +136,73 @@ void initLEDs(void) {
 /* Part 1 */
 void readReg(void) {
 	// Congigure CR2 register
-	//I2C2->CR2 |= (1 << 16) | (0x6B << 1); // Alternative approach
-	I2C2->CR2 |= (0x6B << I2C_CR2_SADD_Pos);   // Set the L3GD20 slave address = 0x6B = 0110 1011 xb
+	//I2C2->CR2 |= (1 << 16) | (0x69 << 1); // Alternative approach
+	I2C2->CR2 |= (0x69 << I2C_CR2_SADD_Pos);   // Set the L3GD20 slave address = 0x6B = 0110 1011 xb
 	I2C2->CR2 |= (0x1  << I2C_CR2_NBYTES_Pos); // Set the number of bytes to transmit = 1
 	I2C2->CR2 &= ~(I2C_CR2_RD_WRN);            // Set the RD_WRN to write operation
 	I2C2->CR2 |= (I2C_CR2_START);              // Set START bit
 	
-	// Wait for TXIS or NACKF flags are set
+	// Wait until TXIS or NACKF flags are set
 	while(1) {
 		if ((I2C2->ISR & I2C_ISR_TXIS) | (I2C2->ISR & I2C_ISR_NACKF)) {
 			break;
 		}
 	}
 	
-	// Turn on LED for NACKF debugging
+	// Turn on ORANGE LED for NACKF debugging
 	if (I2C2->ISR & I2C_ISR_NACKF) {
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET);
-	
 	}
 	
 	// Write the address of the "WHO_AM_I" register into TXDR
-	I2C2->TXDR = 0x0F;
+	I2C2->TXDR = 0x0F; //0xD3;
+
+	// Wait for TC flag is set
+	while(1) {
+		if (I2C2->ISR & I2C_ISR_TC) {
+			// Turn on RED LED for TC debugging
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+			
+			break;
+		}	
+	}
 	
+	// Reload CR2 from before, but change to RD_WRN to read
+	I2C2->CR2 |= (0x69 << I2C_CR2_SADD_Pos);   // Set the L3GD20 slave address = 0x6B = 0110 1011 xb
+	I2C2->CR2 |= (0x1  << I2C_CR2_NBYTES_Pos); // Set the number of bytes to transmit = 1
+	I2C2->CR2 |= (I2C_CR2_RD_WRN);             // Set the RD_WRN to read operation
+	I2C2->CR2 |= (I2C_CR2_START);              // Set START bit
 
-
-
+	// Wait until RXNE or NACKF flags are set
+	while(1) {
+		if ((I2C2->ISR & I2C_ISR_RXNE) | (I2C2->ISR & I2C_ISR_NACKF)) {
+			break;
+		}
+	}
+	
+	// Turn on GREEN LED for RXNE debugging
+	if (I2C2->ISR & I2C_ISR_RXNE) {
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);	
+	}
+	
+	// Wait for TC flag is set
+	while(1) {
+		if (I2C2->ISR & I2C_ISR_TC) {
+			// Turn on/off RED LED for TC debugging
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+			
+			break;
+		}	
+	}
+	
+	// check if RXDR matches 0xD3
+	if (I2C2->RXDR == 0xD3) {
+		// Turn on/off BLUE LED for TC debugging
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
+	}
+	
+	// Set the stop bit in CR2
+	I2C2->CR2 |= (I2C_CR2_STOP);
 }
 
 
