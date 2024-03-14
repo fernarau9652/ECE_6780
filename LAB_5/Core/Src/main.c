@@ -23,6 +23,8 @@
 void initLEDs(void);
 void initPeriph(void);
 void readReg(void);
+void initGyro(void);
+void senseGyro(void);
 
 void SystemClock_Config(void);
 
@@ -48,15 +50,16 @@ int main(void)
 	initLEDs();
 	
 	// Part 1
-	readReg();
+	//readReg();
 	
-	
+	// Part 2 Initialization
+	initGyro();
 	
   while (1)
   {
-    
+		// Part 2 While-loop
+    senseGyro();
   }
-  
 }
 
 /**
@@ -69,14 +72,12 @@ void initPeriph(void) {
 	/* Setting the GPIO Modes */
 	// Set PB11 - AF1
 	GPIOB->MODER |= (GPIO_MODER_MODER11_1); // (Alternate function: 10)
-	//GPIOB->OTYPER |= (0x1 << GPIO_OTYPER_OT_11); // (Open-drain: 1)
-	GPIOB->OTYPER |= (1<<11); // (Open-drain: 1)
+	GPIOB->OTYPER |= (GPIO_OTYPER_OT_11); // (Open-drain: 1)
 	GPIOB->AFR[1] |= (0x1 << GPIO_AFRH_AFSEL11_Pos); // select I2C2_SDA as alternative function
 	
 	// Set PB13 - AF5
 	GPIOB->MODER |= (GPIO_MODER_MODER13_1); // (Alternate function: 10)
-	//GPIOB->OTYPER |= (0x1 << GPIO_OTYPER_OT_13); // (Open-drain: 1)
-	GPIOB->OTYPER |= (1<<13); // (Open-drain: 1)
+	GPIOB->OTYPER |= (GPIO_OTYPER_OT_13); // (Open-drain: 1)
 	GPIOB->AFR[1] |= (0x5 << GPIO_AFRH_AFSEL13_Pos); // select I2C2_SCL as alternative function
 	
 	// Set PB14 - initialize high
@@ -96,14 +97,12 @@ void initPeriph(void) {
 	I2C2->TIMINGR |= (0x0F << I2C_TIMINGR_SCLH_Pos);   // SCHL = 0xF   [bits 8-15]
 	I2C2->TIMINGR |= (0x2  << I2C_TIMINGR_SDADEL_Pos); // SDADEL = 0x2 [bits 16-19]
 	I2C2->TIMINGR |= (0x4  << I2C_TIMINGR_SCLDEL_Pos); // SCLDEL = 0x4 [bits 20-23]
-	//I2C2->TIMINGR |= 0x10420F13; // Alternative approach
 	
 	// Peripheral enable
 	I2C2->CR1 |= I2C_CR1_PE; 
 	
 	// Clear the NBYTES and SADD bit fields
 	I2C2->CR2 &= ~((0x7F << 16) | (0x3FF << 0));
-	
 }
 
 /* Initialize the LEDs*/
@@ -159,7 +158,7 @@ void readReg(void) {
 	}
 	
 	// Write the address of the "WHO_AM_I" register into TXDR
-	I2C2->TXDR = 0x0F; //0xD3;
+	I2C2->TXDR = 0x0F;
 
 	// /*
 	// Wait for TC flag is set
@@ -174,7 +173,7 @@ void readReg(void) {
 	
 	// /*
 	// Reload CR2 from before, but change to RD_WRN to read
-	I2C2->CR2 |= (0xD2 << I2C_CR2_SADD_Pos);   // Set the L3GD20 slave address = 0x69 = 0110 1001, left shift: 0xD2 = 1101 0010
+	I2C2->CR2 |= (0xD2 << I2C_CR2_SADD_Pos);   // Set the L3GD20 slave address = 0x69 = 0110 1001; left shift: 0xD2 = 1101 0010
 	I2C2->CR2 |= (0x1  << I2C_CR2_NBYTES_Pos); // Set the number of bytes to transmit = 1
 	I2C2->CR2 |= (I2C_CR2_RD_WRN_Msk);         // Set the RD_WRN to read operation
 	I2C2->CR2 |= (I2C_CR2_START_Msk);          // Set START bit
@@ -211,6 +210,253 @@ void readReg(void) {
 	// Set the stop bit in CR2
 	I2C2->CR2 |= (I2C_CR2_STOP); // */
 } 
+
+
+/* Part 2 Initialization */
+void initGyro(void) {
+	/* Initializing the Gyroscope */
+	// Enable the X and Y sensing axes in the CTRL_REG1 register
+	//I2C2->CR2 |= (2 << 16) | (0x69 << 1); // Alternative approach
+	//I2C2->CR2 &= ~(1 << 10);              // Set the RD_WRN to write operation
+	//I2C2->CR2 |= (1 << 13);               // Set START bit
+	
+	I2C2->CR2 |= (0xD2 << I2C_CR2_SADD_Pos);   // Set the L3GD20 slave address = 0x69 = 0110 1001; left shift: 0xD2 = 1101 0010
+	I2C2->CR2 |= (0x2  << I2C_CR2_NBYTES_Pos); // Set the number of bytes to transmit = 2
+	I2C2->CR2 &= ~(I2C_CR2_RD_WRN_Msk);        // Set the RD_WRN to write operation
+	I2C2->CR2 |= (I2C_CR2_START_Msk);          // Set START bit
+	
+	// Wait until TXIS or NACKF flags are set (1)
+	while(1) {
+		if ((I2C2->ISR & I2C_ISR_TXIS) | (I2C2->ISR & I2C_ISR_NACKF)) {
+			break;
+		}
+	}
+	
+	// Write the address of the "CTRL_REG1" register into TXDR
+	I2C2->TXDR = 0x20;
+	
+	// Wait again until TXIS or NACKF flags are set (2)
+	while(1) {
+		if ((I2C2->ISR & I2C_ISR_TXIS) | (I2C2->ISR & I2C_ISR_NACKF)) {
+			break;
+		}
+	}
+	
+	// Write the address of the "normal or sleep mode"
+	I2C2->TXDR = 0x0B;
+	
+	// Wait for TC flag is set
+	while(1) {
+		if (I2C2->ISR & I2C_ISR_TC) {			
+			break;
+		}	
+	}
+	
+	// Set the STOP bit in CR2 to release the bus
+	I2C2->CR2 |= (I2C_CR2_STOP);
+}
+
+/* Global Variables for x-axis */
+uint8_t x_byte1;
+uint8_t x_byte2;
+int16_t x;
+int16_t x_dir = 0;
+
+/* Global Variables for y-axis */
+uint8_t y_byte1;
+uint8_t y_byte2;
+int16_t y;
+int16_t y_dir = 0;
+
+/* Part 2 While-loop */
+void senseGyro(void) {
+	// Clear the NBYTES and SADD bit fields
+	I2C2->CR2 &= ~((0x7F << 16) | (0x3FF << 0));
+	
+	/* Enable the X sensing axis in the CTRL_REG1 register */
+	I2C2->CR2 |= (0xD2 << I2C_CR2_SADD_Pos);   // Set the L3GD20 slave address = 0x69 = 0110 1001; left shift: 0xD2 = 1101 0010
+	I2C2->CR2 |= (0x2  << I2C_CR2_NBYTES_Pos); // Set the number of bytes to transmit = 2
+	I2C2->CR2 &= ~(I2C_CR2_RD_WRN_Msk);        // Set the RD_WRN to write operation
+	I2C2->CR2 |= (I2C_CR2_START_Msk);          // Set START bit
+	
+	// Wait until TXIS or NACKF flags are set
+	while(1) {
+		// Continue if TXIS flag is set
+		if ((I2C2->ISR & I2C_ISR_TXIS)) {
+			I2C2->TXDR = 0xA8;
+			break;
+		}
+		
+		// Light ORANGE LED if NACKF flag is set (slave didn't respond)
+		if ((I2C2->ISR & I2C_ISR_NACKF)) {
+			//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8); // debugging
+		}
+	}
+	
+	// Wait for TC flag is set
+	while(1) {
+		if (I2C2->ISR & I2C_ISR_TC) {
+			break;
+		}	
+	}
+	
+	// Reload CR2 from before, but change to RD_WRN to read
+	I2C2->CR2 |= (0xD2 << I2C_CR2_SADD_Pos);   // Set the L3GD20 slave address = 0x69 = 0110 1001; left shift: 0xD2 = 1101 0010
+	I2C2->CR2 |= (0x2  << I2C_CR2_NBYTES_Pos); // Set the number of bytes to transmit = 1
+	I2C2->CR2 |= (I2C_CR2_RD_WRN_Msk);         // Set the RD_WRN to read operation
+	I2C2->CR2 |= (I2C_CR2_START_Msk);          // Set START bit
+	
+	// Wait until RXNE or NACKF flags are set (1)
+	while(1) {
+		// Continue if RXNE flag is set
+		if ((I2C2->ISR & I2C_ISR_RXNE)) {
+			x_byte1 = I2C2->RXDR;
+			break;
+		}
+		
+		// Light ORANGE LED if NACKF flag is set (slave didn't respond)
+		if ((I2C2->ISR & I2C_ISR_NACKF)) {
+			//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8); // debugging
+		}
+	}
+	
+	
+	// Wait again until RXNE or NACKF flags are set (2)
+	while(1) {
+		// Continue if RXNE flag is set
+		if ((I2C2->ISR & I2C_ISR_RXNE)) {
+			x_byte2 = I2C2->RXDR;
+			break;
+		}
+		
+		// Light GREEN LED if NACKF flag is set (slave didn't respond)
+		if ((I2C2->ISR & I2C_ISR_NACKF)) {
+			//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_9); // debugging
+		}
+	}
+	
+	// Wait for TC flag is set
+	while(1) {
+		if (I2C2->ISR & I2C_ISR_TC) {
+			break;
+		}	
+	}
+	
+	// Set the STOP bit in CR2 to release the bus
+	I2C2->CR2 |= (I2C_CR2_STOP);
+	
+	// store x_byte1 and x_byte2 into x
+	x = (x_byte2 << 8) | (x_byte1 << 0);
+	
+	// x-axis direction
+	x_dir += x;
+	HAL_Delay(100); // 100 ms delay
+	
+	/********************************************/
+	
+	// Clear the NBYTES and SADD bit fields
+	I2C2->CR2 &= ~((0x7F << 16) | (0x3FF << 0));
+	
+	/* Enable the Y sensing axis in the CTRL_REG1 register */
+	I2C2->CR2 |= (0xD2 << I2C_CR2_SADD_Pos);   // Set the L3GD20 slave address = 0x69 = 0110 1001; left shift: 0xD2 = 1101 0010
+	I2C2->CR2 |= (0x2  << I2C_CR2_NBYTES_Pos); // Set the number of bytes to transmit = 2
+	I2C2->CR2 &= ~(I2C_CR2_RD_WRN_Msk);        // Set the RD_WRN to write operation
+	I2C2->CR2 |= (I2C_CR2_START_Msk);          // Set START bit
+	
+	// Wait until TXIS or NACKF flags are set
+	while(1) {
+		// Continue if TXIS flag is set
+		if ((I2C2->ISR & I2C_ISR_TXIS)) {
+			I2C2->TXDR = 0xAA;
+			break;
+		}
+		
+		// Light ORANGE LED if NACKF flag is set (slave didn't respond)
+		if ((I2C2->ISR & I2C_ISR_NACKF)) {
+			//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8); // debugging
+		}
+	}
+	
+	// Wait for TC flag is set
+	while(1) {
+		if (I2C2->ISR & I2C_ISR_TC) {
+			break;
+		}	
+	}
+	
+	// Reload CR2 from before, but change to RD_WRN to read
+	I2C2->CR2 |= (0xD2 << I2C_CR2_SADD_Pos);   // Set the L3GD20 slave address = 0x69 = 0110 1001; left shift: 0xD2 = 1101 0010
+	I2C2->CR2 |= (0x2  << I2C_CR2_NBYTES_Pos); // Set the number of bytes to transmit = 1
+	I2C2->CR2 |= (I2C_CR2_RD_WRN_Msk);         // Set the RD_WRN to read operation
+	I2C2->CR2 |= (I2C_CR2_START_Msk);          // Set START bit
+	
+	// Wait until RXNE or NACKF flags are set (1)
+	while(1) {
+		// Continue if RXNE flag is set
+		if ((I2C2->ISR & I2C_ISR_RXNE)) {
+			y_byte1 = I2C2->RXDR;
+			break;
+		}
+		
+		// Light ORANGE LED if NACKF flag is set (slave didn't respond)
+		if ((I2C2->ISR & I2C_ISR_NACKF)) {
+			//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8); // debugging
+		}
+	}
+	
+	
+	// Wait again until RXNE or NACKF flags are set (2)
+	while(1) {
+		// Continue if RXNE flag is set
+		if ((I2C2->ISR & I2C_ISR_RXNE)) {
+			y_byte2 = I2C2->RXDR;
+			break;
+		}
+		
+		// Light GREEN LED if NACKF flag is set (slave didn't respond)
+		if ((I2C2->ISR & I2C_ISR_NACKF)) {
+			//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_9); // debugging
+		}
+	}
+	
+	// Wait for TC flag is set
+	while(1) {
+		if (I2C2->ISR & I2C_ISR_TC) {
+			break;
+		}	
+	}
+	
+	// Set the STOP bit in CR2 to release the bus
+	I2C2->CR2 |= (I2C_CR2_STOP);
+	
+	// store y_byte1 and y_byte2 into y
+	y = (y_byte2 << 8) | (y_byte1 << 0);
+	
+	// y-axis direction
+	y_dir += y;
+	// HAL_Delay(100); // 100 ms delay
+	
+	
+	/* Gyroscope Testing */
+	// X-AXIS controls the ORANGE and GREEN LEDS
+	if (x_dir < 0) {
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
+	} else {
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
+	}
+	
+	// Y-AXIS controls the RED and BLUE LEDS
+	if (x_dir < 0) {
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_RESET);
+	} else {
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
+	}
+	
+}
 
 
 
