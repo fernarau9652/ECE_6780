@@ -19,42 +19,20 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+void initLEDs(void);
+void initPC1(void);
+void initADC(void);
+void calADC(void);
+void thresLED(void);
 
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-/* USER CODE BEGIN PFP */
 
-/* USER CODE END PFP */
 
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
+#define THRESHOLD_0 10
+#define THRESHOLD_1 20
+#define THRESHOLD_2 30
+#define THRESHOLD_3 40
 
-/* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
@@ -62,41 +40,166 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
-  /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+	
+	// Enable GPIOC, and ADC1 Clock in RCC (SCL)
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+	__HAL_RCC_ADC1_CLK_ENABLE();
+	
+	// intialize LEDs
+	initLEDs();
+	
+	// Setup for PC1
+	initPC1();
+	
+	// Setup ADC and perform self-calibration
+	initADC();
+	calADC();
+ 
+  while (1) {
+		// Part 1
+		thresLED();
   }
-  /* USER CODE END 3 */
+ 
 }
+
+
+
+/* Initialize the LEDs*/
+void initLEDs(void) {	
+	/* Initialize all LEDs: RED (PC6), BLUE (PC7), ORANGE (PC8), GREEN (PC9)	*/
+	// (Reset state: 00)
+	GPIOC->MODER &= ~(GPIO_MODER_MODER6_Msk | GPIO_MODER_MODER7_Msk | GPIO_MODER_MODER8_Msk | GPIO_MODER_MODER9_Msk);
+	
+	// (General purpose: 01) 
+	GPIOC->MODER |= (GPIO_MODER_MODER6_0 | GPIO_MODER_MODER7_0 | GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0);
+	
+	// Configure Push/Pull Output type for PC6, PC7, PC8, and PC9	(00)
+	GPIOC->OTYPER &= ~(GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7 | GPIO_OTYPER_OT_8 | GPIO_OTYPER_OT_9);
+	
+	// Configure low speed for PC6, PC7, PC8, and PC9	(00)
+	GPIOC->OSPEEDR &= ~(GPIO_OSPEEDR_OSPEEDR6_Msk | GPIO_OSPEEDR_OSPEEDR7_Msk | GPIO_OSPEEDR_OSPEEDR8_Msk | GPIO_OSPEEDR_OSPEEDR9_Msk);
+	
+	// Configure no pull-up/down resistors for PC6, PC7, PC8, and PC9	(00)
+	GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR6_Msk | GPIO_PUPDR_PUPDR7_Msk | GPIO_PUPDR_PUPDR8_Msk | GPIO_PUPDR_PUPDR9_Msk);
+	
+	// Initialize pins to logic high and the other to low.
+	GPIOC->BSRR = GPIO_BSRR_BR_6;	// Set PC6 low
+	GPIOC->BSRR = GPIO_BSRR_BR_7; // Set PC7 low
+	GPIOC->BSRR = GPIO_BSRR_BR_8;	// Set PC8 low
+	GPIOC->BSRR = GPIO_BSRR_BR_9; // Set PC9 low
+}
+
+
+/* Select a GPIO pin PC1 to ADC input */
+void initPC1(void) {
+	// (Reset state: 00)
+	GPIOC->MODER &= ~(GPIO_MODER_MODER1_Msk);
+
+	// (Analog function: 11)
+	GPIOC->MODER |= (GPIO_MODER_MODER1_Msk);
+	
+	// Configure Push/Pull Output type for PC1	(00)
+	GPIOC->OTYPER &= ~(GPIO_OTYPER_OT_1);
+	
+	// Configure low speed for PC1	(00)
+	GPIOC->OSPEEDR &= ~(GPIO_OSPEEDR_OSPEEDR1_Msk);
+	
+	// Configure no pull-up/down resistors for PC1	(00)
+	GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR1_Msk);
+}
+
+
+/* Configure ADC */
+void initADC(void) {
+	// 8-bit resolution
+	ADC1->CFGR1 |= (0x2 << ADC_CFGR1_RES_Pos);
+	
+	// Continuous conversion mode
+	ADC1->CFGR1 |= (ADC_CFGR1_CONT_Msk);
+	
+	// Hardware triggers disabled (software trigger only)
+	ADC1->CFGR1 &= ~(ADC_CFGR1_EXTEN_Msk);
+	
+	// Set channel 11 for PC1
+	ADC1->CHSELR |= (ADC_CHSELR_CHSEL11);
+}
+
+
+/* Enable ADC conversion and self-calibrate */
+void calADC(void) {
+	// Calibration (Peripheral Ref: A.7.1)
+	/* (1) Ensure that ADEN = 0 */
+	/* (2) Clear ADEN by setting ADDIS*/
+	/* (3) Clear DMAEN */
+	/* (4) Launch the calibration by setting ADCAL */
+	/* (5) Wait until ADCAL=0 */
+	if ((ADC1->CR & ADC_CR_ADEN) != 0) /* (1) */ {
+		ADC1->CR |= ADC_CR_ADDIS; /* (2) */
+	}
+	while ((ADC1->CR & ADC_CR_ADEN) != 0) {
+		/* For robust implementation, add here time-out management */
+	}
+	ADC1->CFGR1 &= ~ADC_CFGR1_DMAEN; /* (3) */
+	ADC1->CR |= ADC_CR_ADCAL; /* (4) */
+	while ((ADC1->CR & ADC_CR_ADCAL) != 0) /* (5) */ {
+		/* For robust implementation, add here time-out management */
+	}
+	
+	// Enable (Peripheral Ref: A.7.2)
+	/* (1) Ensure that ADRDY = 0 */
+	/* (2) Clear ADRDY */
+	/* (3) Enable the ADC */
+	/* (4) Wait until ADC ready */
+	if ((ADC1->ISR & ADC_ISR_ADRDY) != 0) /* (1) */ {
+		ADC1->ISR |= ADC_ISR_ADRDY; /* (2) */
+	}
+	ADC1->CR |= ADC_CR_ADEN; /* (3) */
+	while ((ADC1->ISR & ADC_ISR_ADRDY) == 0) /* (4) */ {
+		/* For robust implementation, add here time-out management */
+	}
+	
+	// Start ADC
+	ADC1->CR |= (ADC_CR_ADSTART);
+}
+
+
+/* Part 1 */
+void thresLED(void) {
+	// store Data reg in local variable
+	uint16_t val = ADC1->DR;
+	
+	if (val < THRESHOLD_0) {
+		GPIOC->ODR &= ~(GPIO_ODR_6);
+		GPIOC->ODR &= ~(GPIO_ODR_7);
+		GPIOC->ODR &= ~(GPIO_ODR_8);
+		GPIOC->ODR &= ~(GPIO_ODR_9);
+	} else if ((THRESHOLD_0 < val) & (val < THRESHOLD_1)) {
+		GPIOC->ODR |= (GPIO_ODR_6);
+		GPIOC->ODR &= ~(GPIO_ODR_7);
+		GPIOC->ODR &= ~(GPIO_ODR_8);
+		GPIOC->ODR &= ~(GPIO_ODR_9);
+	} else if ((THRESHOLD_1 < val) & (val < THRESHOLD_2)) {
+		GPIOC->ODR |= (GPIO_ODR_6);
+		GPIOC->ODR |= (GPIO_ODR_7);
+		GPIOC->ODR &= ~(GPIO_ODR_8);
+		GPIOC->ODR &= ~(GPIO_ODR_9);
+	} else if ((THRESHOLD_2 < val) & (val < THRESHOLD_3)) {
+		GPIOC->ODR |= (GPIO_ODR_6);
+		GPIOC->ODR |= (GPIO_ODR_7);
+		GPIOC->ODR |= (GPIO_ODR_8);
+		GPIOC->ODR &= ~(GPIO_ODR_9);
+	} else if (THRESHOLD_3 < val) {
+		GPIOC->ODR |= (GPIO_ODR_6);
+		GPIOC->ODR |= (GPIO_ODR_7);
+		GPIOC->ODR |= (GPIO_ODR_8);
+		GPIOC->ODR |= (GPIO_ODR_9);
+	}
+}
+
+
+
 
 /**
   * @brief System Clock Configuration
