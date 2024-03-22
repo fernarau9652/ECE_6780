@@ -21,19 +21,42 @@
 
 void initLEDs(void);
 void initPC1(void);
+void initPA4(void);
 void initADC(void);
+void initDAC(void);
 void calADC(void);
 void thresLED(void);
+void waveDAC(void);
 
 void SystemClock_Config(void);
 
 
+// Thresholds for Part 1
 #define THRESHOLD_0 10
 #define THRESHOLD_1 20
 #define THRESHOLD_2 30
 #define THRESHOLD_3 40
 
 
+// Generative Waves for DAC
+// Sine Wave: 8-bit, 32 samples/cycle
+const uint8_t sine_table[32] = {127,151,175,197,216,232,244,251,254,251,244,
+232,216,197,175,151,127,102,78,56,37,21,9,2,0,2,9,21,37,56,78,102};
+	
+// Triangle Wave: 8-bit, 32 samples/cycle
+const uint8_t triangle_table[32] = {0,15,31,47,63,79,95,111,127,142,158,174,
+190,206,222,238,254,238,222,206,190,174,158,142,127,111,95,79,63,47,31,15};
+
+// Sawtooth Wave: 8-bit, 32 samples/cycle
+const uint8_t sawtooth_table[32] = {0,7,15,23,31,39,47,55,63,71,79,87,95,103,
+111,119,127,134,142,150,158,166,174,182,190,198,206,214,222,230,238,246};
+
+// Square Wave: 8-bit, 32 samples/cycle (Don't use)
+//const uint8_t square_table[32] = {254,254,254,254,254,254,254,254,254,254,
+//254,254,254,254,254,254,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+	
+	
 /**
   * @brief  The application entry point.
   * @retval int
@@ -43,27 +66,41 @@ int main(void)
   HAL_Init();
   SystemClock_Config();
 	
-	// Enable GPIOC, and ADC1 Clock in RCC (SCL)
+	// Enable GPIOC, GPIOA, ADC1, and DAC1 Clock in RCC
 	__HAL_RCC_GPIOC_CLK_ENABLE();
+	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_ADC1_CLK_ENABLE();
+	__HAL_RCC_DAC1_CLK_ENABLE();
 	
 	// intialize LEDs
 	initLEDs();
 	
+	/* Part 1 Initialization */	// /*
 	// Setup for PC1
 	initPC1();
 	
 	// Setup ADC and perform self-calibration
 	initADC();
-	calADC();
+	calADC();		// */
+	
+	
+	/* Part 2 Initialization */	// /*
+	// Setup for PC1
+	initPA4();
+	
+	// Setup ADC and perform self-calibration
+	initDAC();	// */
+	
  
   while (1) {
-		// Part 1
-		thresLED();
+		/* Part 1 */	 /*
+		thresLED();		// */
+		
+		/* Part 2 */	// /*
+		waveDAC();		// */
   }
  
 }
-
 
 
 /* Initialize the LEDs*/
@@ -165,7 +202,7 @@ void calADC(void) {
 }
 
 
-/* Part 1 */
+/* Part 1 LED checkoff */
 void thresLED(void) {
 	// store Data reg in local variable
 	uint16_t val = ADC1->DR;
@@ -198,6 +235,55 @@ void thresLED(void) {
 	}
 }
 
+
+/* Select a GPIO pin PA4 to DAC input */
+void initPA4(void) {
+	// (Reset state: 00)
+	GPIOA->MODER &= ~(GPIO_MODER_MODER4_Msk);
+
+	// (Analog function: 11)
+	GPIOA->MODER |= (GPIO_MODER_MODER4_Msk);
+	
+	// Configure Push/Pull Output type for PA4	(00)
+	GPIOA->OTYPER &= ~(GPIO_OTYPER_OT_4);
+	
+	// Configure low speed for PA4	(00)
+	GPIOA->OSPEEDR &= ~(GPIO_OSPEEDR_OSPEEDR4_Msk);
+	
+	// Configure no pull-up/down resistors for PA4	(00)
+	GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR4_Msk);
+}
+
+
+/* Configure DAC */
+void initDAC(void) {
+	// Set software trigger: (111)
+	DAC1->CR |= (DAC_CR_TSEL1_Msk);
+	
+	// DAC enable
+	DAC1->CR |= (DAC_CR_EN1_Msk);
+}
+
+
+// global variable index
+uint8_t index = 0;
+
+/* DAC wave table */
+void waveDAC(void) {
+	// Send wave to data register DHR8R1
+	//DAC1->DHR8R1 = sine_table[index];
+	//DAC1->DHR8R1 = triangle_table[index];
+	DAC1->DHR8R1 = sawtooth_table[index];
+	
+	// Track the index
+	index++;
+	if (index == 31) {
+		index = 0;
+	}
+	
+	// Insert delay
+	HAL_Delay(1);
+}
 
 
 
