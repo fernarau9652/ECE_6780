@@ -281,7 +281,7 @@ void waveDAC(void) {
 		index = 0;
 	}
 	
-	// Insert delay
+	// Insert delay 1ms
 	HAL_Delay(1);
 }
 
