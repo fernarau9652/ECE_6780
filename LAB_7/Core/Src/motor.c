@@ -4,7 +4,7 @@
  */
 #include "motor.h"
 
-volatile int16_t error_integral = 0;    // Integrated error signal
+volatile int16_t error_integral = 0;	// Integrated error signal
 volatile uint8_t duty_cycle = 0;    	// Output PWM duty cycle
 volatile int16_t target_rpm = 0;    	// Desired speed target
 volatile int16_t motor_speed = 0;   	// Measured motor speed
